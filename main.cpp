@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#include <gomory_hu.h>
+#include "gomory_hu.h"
 using namespace std;
 
 int main() {
