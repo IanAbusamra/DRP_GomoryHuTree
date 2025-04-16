@@ -69,61 +69,38 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
                     blended_graph.add_edge(k, j, edge_weights[k]);
                 }
             }
-            // //after splitting
-            // for (blobs in our half) {
-            //     insert into blobs[i] to replace
-            // }
-            //create new blob and insert vertices, append.
+
+            //iterate through the vertices of the current blob and add edges to each other vertex to the blended graph
+            for (int vertex : blobs[i]) {
+                for (auto og_edge : og_graph.adj[vertex]) {
+                    blended_graph.add_edge(mega_blobs.size() + vertex, mega_blobs.size() + og_edge.to, og_edge.weight);
+                }
+            }
+
+            //iterate through the vertices of the current blob and add 'mega edges' from those vertices to the mega blobs
+            for (int vertex : blobs[i]) {
+                for (int j = 0; j < mega_blobs.size(); j++) {
+                    int sum = 0;
+                    for (int k = 0; k < mega_blobs[j].size(); k++) {
+                        //need to implement below function
+                        //sum += find_dist(vertex, mega_blobs[j][k]);
+                    }
+                    blended_graph.add_edge(mega_blobs.size() + vertex, j, sum);
+                    blended_graph.add_edge(j, mega_blobs.size() + vertex, sum);
+                }
+            }
+
+            //max_flow(mega_blobs.size(), mega_blobs.size() + 1) -> (mincut value, mincut edges)
+            Blob half_1, half_2;
+            for (e : mincut_edges) {
+                half_1.insert(e.from);
+                half_2.insert(e.to);
+            }
+            blobs[i] = half_1;
+            blobs.push_back(half_2);
         }
     }
 }
-
-// GomoryHuTree::GomoryHuTree(const std::vector<std::vector<edge>>& graph) {
-//     n = graph.size();
-//     tree.assign(n, std::vector<edge>());
-//     Blobs = set<int> // collection of vertices of graph
-//     std::vector<Blobs> blobs; // stores vertices that are inside each of the blobs
-// 	std::vector<std::vector<edge>> tree; // stores edges between blobs
-//     blobs = {vertices(graph)}; 
-//     for (size_t i = 0; i <= blobs.size(); ++i) {
-//     	while (blob.size() >= 1) {
-//     		... // treat this blob as X from the whiteboard
-//     	} // outcome is that we get one extra blob, some edges of "tree" change
-//     } //outcome is n blobs of size 1 and tree on blobs
-
-//     for (vec in tree) {
-//     	for (edge in vec) {
-//     		GH_tree[blob[edge.from].front()].push_back(edge{blob[edge.from].front(), blob[edge.to].front(), 
-//     																							edge.weight});
-//     	}
-//     }
-//     return;
-// }
-
-// int n;
-// std::vector<std::vector<edges>> GH_tree;
-
-// // the ... part:
-// // we have a graph on blob.size() vertices with edges written in tree
-// vector<int> color(blob.size(), 0);
-// color[i] = -1;
-// int next_color = 1;
-// for (int i = 0; i < blob.size(); ++i) {
-// 	if (color[i] == 0) {
-// 		dfs(vertex == i, color == next_color);
-// 		next_color++;
-// 	}
-// } //all blobs are colored, the number of colors is next_color (+-1)
-// // read about graph condensation/compression
-// //new vector of blobs for components of blobs from the whiteboard
-// //new grap: vertices - colors, weight on edges - sum of weights between the vertices from the blobs of said colors
-// //add vertices from blob[i] to the set of vertices of the new graph, so now it has 
-// //														next_color + blob[i].size() vertices
-// //add edges from/to those vertices too
-
-// // run min cut on this new graph with s-f being any two vertices of blob[i], flag = true
-
-// //...
 
 void GomoryHuTree::dfs(int blob, const std::vector<std::vector<edge>>& adj, std::map<int, std::vector<int>>& mp, std::vector<int>& color, int current_color) {
     color[blob] = current_color;
