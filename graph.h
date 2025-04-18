@@ -1,14 +1,13 @@
 #include <vector>
-#include "edge.h"
 
 struct Graph {
     int n;
-    std::vector<std::vector<edge>> adj;
+    std::vector<std::vector<int>> adj;
 
-    Graph(int n) : n(n), adj(n) {}
+    Graph(int n) : n(n), adj(n + 1, std::vector<int>(n + 1, -1)) {};
 
     void add_edge(int from, int to, int weight) {
-        adj[from].emplace_back(from, to, weight);
-        adj[to].emplace_back(to, from, weight);
+        adj[from][to] = weight;
+        adj[to][from] = weight;
     }
 };

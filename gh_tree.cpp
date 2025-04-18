@@ -10,7 +10,6 @@
 using Blob = std::set<int>;
 
 GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
-    tree.assign(n, std::vector<edge>());
     std::vector<Blob> blobs;
 
     Graph blob_tree(n);
@@ -26,44 +25,44 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
         while (blobs[i].size() > 1) {
             std::vector<int> color(blobs.size(), 0);
             //map color -> vector<blob index> (blobs that share the color)
-            std::map<int, std::vector<int>> mp;
             color[i] = -1;
             int next_color = 1;
             for (int j = 0; j < blobs.size(); ++j) {
                 if (color[j] == 0) {
-                    dfs(j, blob_tree.adj, mp, color, next_color);
+                    dfs(j, blob_tree.adj, color, next_color);
                     next_color++;
                 }
             }
 
-            //stores vectors containing each vertex of a 'mega blob'
-            std::vector<std::vector<int>> mega_blobs; // DS: store indices of blobs instead of just vertices 
+            //map each color to its megablobs
+            std::map<int, std::vector<int>> mp;
+            for (int j = 0; j < blobs.size(); j++) {
+                mp[color[j]].push_back(j);
+            }
+
+            //stores vectors containing each blob index of a 'mega blob'
+            std::vector<std::vector<int>> mega_blobs;
 
             //iterate through the map and create mega blobs
-            for (auto [key, value] : mp) {
-                std::vector<int> new_mega_blob;
-                for (int k = 0; k < value.size(); k++) {
-                    for (int vertex : blobs[value[k]]) {
-                        new_mega_blob.push_back(vertex);
-                    }
-                }
-                mega_blobs.push_back(new_mega_blob);
+            for (const auto& [clr, mg_blob] : mp) {
+                mega_blobs.push_back(mg_blob);
             }
 
             //in the blended graph, spaces [0, mega_blobs.size()] will represent the blobs, and the remaining will represent individual vertices
-            Graph blended_graph(n); //DS: blod[i].size() + mp.size()
+            Graph blended_graph(blob[i].size() + mp.size() + 1);
             //iterate through megablobs and for each, create new 'mega edges' to all other blobs
             for (int j = 0; j < mega_blobs.size(); j++) {
                 std::vector<int> edge_weights((int)mega_blobs.size());
                 for (int vertex : mega_blobs[j]) {
-                    for (auto og_edge : og_graph.adj[vertex]) {
-                        edge_weights[og_edge.to] += og_edge.weight;
+                    for (int to : og_graph.adj[vertex]) {
+                        if (to == -1) continue;
+                        edge_weights[to] += og_graph.adj[vertex][to];
                     }
                 }
                 for (int k = 0; k < mega_blobs.size(); k++) {
                     if (k == j) continue;
-                    blended_graph.add_edge(j, k, edge_weights[k]); //DS: double counting
-                    //blended_graph.add_edge(k, j, edge_weights[k]); //DS: double counting
+                    blended_graph[j][k] = edge_weights[k];
+                    blended_graph.add_edge(j, k, edge_weights[k]);
                 }
             }
 
@@ -75,9 +74,8 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
             // }
             for (std::set<int>::iterator it = blobs[i].begin(); it != blobs[i].end(); ++it) { // DS: because blobs[i] is a set you have to use iterators
                 auto vertex = *it;
-                for (auto og_edge : og_graph.adj[vertex]) {
-                    auto to = og_edge.to;
-                    blended_graph.add_edge(mega_blobs.size() + vertex, mega_blobs.size() + to, og_graph.adj[vertex][to].weight);
+                for (auto to : og_graph.adj[vertex]) {
+                    blended_graph.add_edge(mega_blobs.size() + vertex, mega_blobs.size() + to, og_graph.adj[vertex][to]);
                 }
             }
 
@@ -117,13 +115,11 @@ std::pair<int, std::vector<int>> GomoryHuTree::max_flow(Graph blended_graph, int
     return max_f;
 }
 
-void GomoryHuTree::dfs(int blob, const std::vector<std::vector<edge>>& adj, std::map<int, std::vector<int>>& mp, std::vector<int>& color, int current_color) {
+void GomoryHuTree::dfs(int blob, const std::vector<std::vector<int>>& adj, std::vector<int>& color, int current_color) {
     color[blob] = current_color;
-    mp[current_color].push_back(blob);
-    for (edge neighbor : adj[blob]) {
-        int from = neighbor.from, to = neighbor.to, weight = neighbor.weight;
-        if (color[to] == 0) {
-            dfs(to, adj, mp, color, current_color);
+    for (int neighbor : adj[blob]) {
+        if (adj[blob][neighbor] != -1 && color[neighbor] == 0) {
+            dfs(neighbor, adj, color, current_color);
         }
     }
 }
