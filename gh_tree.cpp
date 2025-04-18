@@ -92,7 +92,8 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
 
             //max_flow(mega_blobs.size(), mega_blobs.size() + 1) -> (mincut value, mincut edges)
             Blob half_1, half_2;
-            for (e : mincut_edges) {
+            auto max_f = max_flow(mega_blobs.size(), mega_blobs.size() + 1);
+            for (auto e : max_f.second) {
                 half_1.insert(e.from);
                 half_2.insert(e.to);
             }
@@ -100,6 +101,11 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
             blobs.push_back(half_2);
         }
     }
+}
+
+std::pair<int, std::vector<edge>> GomoryHuTree::max_flow(int s, int t) {
+    std::pair<int, std::vector<edge>> max_f;
+    return max_f;
 }
 
 void GomoryHuTree::dfs(int blob, const std::vector<std::vector<edge>>& adj, std::map<int, std::vector<int>>& mp, std::vector<int>& color, int current_color) {
