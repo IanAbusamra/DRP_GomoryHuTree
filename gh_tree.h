@@ -19,7 +19,7 @@ private:
     void dfs(int vertex, const std::vector<std::vector<edge>>& adj, std::map<int, std::vector<int>>& mp, std::vector<int>& color, int current_color);
 
     // Internal function used to find the max flow between two vertices
-    std::pair<int, std::vector<edge>> GomoryHuTree::max_flow(int s, int t);
+    std::pair<int, std::vector<int>> GomoryHuTree::max_flow(Graph blended_graph, int size, bool flag = true);
 
 public:
     // Constructor: builds the Gomory-Hu tree from a graph (adjacency list)

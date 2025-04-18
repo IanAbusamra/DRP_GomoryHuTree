@@ -37,7 +37,7 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
             }
 
             //stores vectors containing each vertex of a 'mega blob'
-            std::vector<std::vector<int>> mega_blobs;
+            std::vector<std::vector<int>> mega_blobs; // DS: store indices of blobs instead of just vertices 
 
             //iterate through the map and create mega blobs
             for (auto [key, value] : mp) {
@@ -50,11 +50,8 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
                 mega_blobs.push_back(new_mega_blob);
             }
 
-            //map each vertex back to original vertex?
-            std::map<int, int> perm;
-
             //in the blended graph, spaces [0, mega_blobs.size()] will represent the blobs, and the remaining will represent individual vertices
-            Graph blended_graph(n);
+            Graph blended_graph(n); //DS: blod[i].size() + mp.size()
             //iterate through megablobs and for each, create new 'mega edges' to all other blobs
             for (int j = 0; j < mega_blobs.size(); j++) {
                 std::vector<int> edge_weights((int)mega_blobs.size());
@@ -65,46 +62,58 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
                 }
                 for (int k = 0; k < mega_blobs.size(); k++) {
                     if (k == j) continue;
-                    blended_graph.add_edge(j, k, edge_weights[k]);
-                    blended_graph.add_edge(k, j, edge_weights[k]);
+                    blended_graph.add_edge(j, k, edge_weights[k]); //DS: double counting
+                    //blended_graph.add_edge(k, j, edge_weights[k]); //DS: double counting
                 }
             }
 
             //iterate through the vertices of the current blob and add edges to each other vertex to the blended graph
-            for (int vertex : blobs[i]) {
+            // for (int vertex : blobs[i]) { // DS: elements of blobs[i] are up to n. Instead you should just index with i
+            //     for (auto og_edge : og_graph.adj[vertex]) {
+            //         blended_graph.add_edge(mega_blobs.size() + vertex, mega_blobs.size() + og_edge.to, og_edge.weight);
+            //     }
+            // }
+            for (std::set<int>::iterator it = blobs[i].begin(); it != blobs[i].end(); ++it) { // DS: because blobs[i] is a set you have to use iterators
+                auto vertex = *it;
                 for (auto og_edge : og_graph.adj[vertex]) {
-                    blended_graph.add_edge(mega_blobs.size() + vertex, mega_blobs.size() + og_edge.to, og_edge.weight);
+                    auto to = og_edge.to;
+                    blended_graph.add_edge(mega_blobs.size() + vertex, mega_blobs.size() + to, og_graph.adj[vertex][to].weight);
                 }
             }
 
             //iterate through the vertices of the current blob and add 'mega edges' from those vertices to the mega blobs
-            for (int vertex : blobs[i]) {
+            for (std::set<int>::iterator it = blobs[i].begin(); it != blobs[i].end(); ++it) { //DS: the same issue with vertex being up to n
+                auto vertex = *it;
                 for (int j = 0; j < mega_blobs.size(); j++) {
                     int sum = 0;
                     for (int k = 0; k < mega_blobs[j].size(); k++) {
                         //need to implement below function
                         //sum += find_dist(vertex, mega_blobs[j][k]);
+                        continue;
                     }
-                    blended_graph.add_edge(mega_blobs.size() + vertex, j, sum);
+                    // blended_graph.add_edge(mega_blobs.size() + vertex, j, sum);
                     blended_graph.add_edge(j, mega_blobs.size() + vertex, sum);
                 }
             }
 
-            //max_flow(mega_blobs.size(), mega_blobs.size() + 1) -> (mincut value, mincut edges)
-            Blob half_1, half_2;
-            auto max_f = max_flow(mega_blobs.size(), mega_blobs.size() + 1);
-            for (auto e : max_f.second) {
-                half_1.insert(e.from);
-                half_2.insert(e.to);
-            }
-            blobs[i] = half_1;
-            blobs.push_back(half_2);
+            //max_flow(blended_graph, mega_blobs.size(), mega_blobs.size() + 1, flag = true) -> (mincut value, connected component of the vertex mega_blobs.size() - a vector of vertices)
+            //vertices (the og_graph vertices) of the blobs[i] in the connected component are indexed by mega_blobs.size()+ and correspond to 
+            //                                                                                                          blobs[i][index - mega_blobs.size()] in the og_graph
+            auto max_f = max_flow(blended_graph, mega_blobs.size(), true);
+            // create a new blob out of those vertices of og_graph -> blobs.push_back(new blob{connectged component});
+            // remove elements of the newly added blob blobs.push_back(new blob{connectged component}) from the blobs[i]
+            
+            //connect blobs[i] and the newly added blob blobs.push_back(new blob{connectged component})
+
+            //for mega_blobs of the connected component in the blendnded graph are indexed by < bega_blods.size()
+                //find the_blob that is connectd to blobs[i] in the blod_tree graph
+                //disconnect it from the blobs[i] and connect it to newly added blod blobs.push_back(new blob{connectged component})
         }
     }
 }
 
-std::pair<int, std::vector<edge>> GomoryHuTree::max_flow(int s, int t) {
-    std::pair<int, std::vector<edge>> max_f;
+std::pair<int, std::vector<int>> GomoryHuTree::max_flow(Graph blended_graph, int size, bool flag) {
+    std::pair<int, std::vector<int>> max_f;
     return max_f;
 }
 
