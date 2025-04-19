@@ -1,2 +1,31 @@
+# Build
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+/compile_commands.json
+
+# IDE
 .vscode/
-main.exe
+*.code-workspace
+
+# OS
+*.swp
+*~
+.DS_Store
+
+# Binaries, executables
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.lib
+
+# Test reports, coverage
+/Testing/
+/*.xml
+*.gcno
+*.gcda
