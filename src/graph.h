@@ -12,6 +12,11 @@ struct Graph {
         adj[from][to] = weight;
         adj[to][from] = weight;
     }
+
+    void increase_edge(int from, int to, int weight) {
+        adj[from][to] += weight;
+        adj[to][from] += weight;
+    }
 };
 
 #endif

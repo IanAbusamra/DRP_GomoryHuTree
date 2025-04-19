@@ -65,7 +65,7 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
                 }
             }
 
-
+            //TODO: add +mega_blobs.size() in this map here
             std::vector<int> local_vertices(blobs[i].begin(), blobs[i].end());
             std::map<int,int> index_map; //map to compress the blob's vertices
             for (int idx = 0; idx < (int)local_vertices.size(); ++idx) {
@@ -82,36 +82,43 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
             }
 
             //iterate through the vertices of the current blob and add 'mega edges' from those vertices to the mega blobs
-            for (std::set<int>::iterator it = blobs[i].begin(); it != blobs[i].end(); ++it) { //DS: the same issue with vertex being up to n
+            for (std::set<int>::iterator it = blobs[i].begin(); it != blobs[i].end(); ++it) {
                 int vertex = index_map[*it];
                 for (int j = 0; j < mega_blobs.size(); j++) {
-                    int sum = 0;
                     for (int k = 0; k < mega_blobs[j].size(); k++) {
-                        //need to implement below function
-                        //sum += find_dist(vertex, mega_blobs[j][k]);
-                        continue;
+                        if (og_graph.adj[*it][mega_blobs[j][k]] != -1) {
+                            blended_graph.increase_edge(vertex, j, og_graph.adj[*it][mega_blobs[j][k]]);
+                            blended_graph.increase_edge(j, vertex, og_graph.adj[*it][mega_blobs[j][k]]);
+                        }
                     }
-                    blended_graph.add_edge(j, mega_blobs.size() + vertex, sum);
                 }
             }
 
-            //max_flow(blended_graph, mega_blobs.size(), mega_blobs.size() + 1, flag = true) -> (mincut value, connected component of the vertex mega_blobs.size() - a vector of vertices)
-            //vertices (the og_graph vertices) of the blobs[i] in the connected component are indexed by mega_blobs.size()+ and correspond to 
-            //                                                                                                          blobs[i][index - mega_blobs.size()] in the og_graph
-            auto max_f = max_flow(blended_graph, mega_blobs.size(), true);
-            // create a new blob out of those vertices of og_graph -> blobs.push_back(new blob{connectged component});
-            // remove elements of the newly added blob blobs.push_back(new blob{connectged component}) from the blobs[i]
-            
-            //connect blobs[i] and the newly added blob blobs.push_back(new blob{connectged component})
+            auto [flow_val, reachable] = max_flow(blended_graph, mega_blobs.size());
 
-            //for mega_blobs of the connected component in the blendnded graph are indexed by < bega_blods.size()
-                //find the_blob that is connectd to blobs[i] in the blod_tree graph
-                //disconnect it from the blobs[i] and connect it to newly added blod blobs.push_back(new blob{connectged component})
+            //create a new blob with the reachable vertices
+            Blob new_blob;
+            for (int idx = 0; idx < local_vertices.size(); ++idx) {
+                if (reachable[mega_blobs.size() + idx]) {
+                    new_blob.insert(local_vertices[idx]);
+                }
+            }
+
+            //remove the vertices of the new blob from blobs[i]
+            for (int v : new_blob) {
+                blobs[i].erase(v);
+            }
+
+            //add edge between the split blob
+            blobs.push_back(new_blob);
+            int new_idx = blobs.size() - 1;
+
+            blob_tree.add_edge(i, new_idx, flow_val);
         }
     }
 }
 
-std::pair<int, std::vector<int>> GomoryHuTree::max_flow(Graph blended_graph, int size, bool flag) {
+std::pair<int, std::vector<int>> GomoryHuTree::max_flow(Graph blended_graph, int size) {
     std::pair<int, std::vector<int>> max_f;
     return max_f;
 }
@@ -137,3 +144,26 @@ int GomoryHuTree::query(int u, int v, bool include_vertices) {
     
     return ans;
 }
+
+// void initialize_blobs();
+// void split_blob(size_t i);
+// std::pair<Graph, std::map<int,int>> create_blended_graph(const Blob& blob);
+// void update_blob_tree(int old_blob_idx, int new_blob_idx, int flow_val);
+// Graph build_blended_graph(const Blob& current_blob, const std::vector<std::vector<int>>& mega_blobs);
+
+// class GomoryHuTree {
+//     public:
+//         GomoryHuTree(const Graph& g);
+//         int query(int u, int v, bool include_vertices);
+    
+//     private:
+//         void initialize();
+//         void split_blob(int blob_idx);
+//         std::pair<Graph, std::map<int,int>> build_blended_graph(const Blob& blob, const std::vector<std::vector<int>>& mega_blobs);
+//         std::pair<int, std::vector<int>> max_flow(Graph& g, int source, int target);
+//         void dfs(int blob, const std::vector<std::vector<int>>& adj, std::vector<int>& color, int current_color);
+    
+//         std::vector<Blob> blobs;
+//         Graph blob_tree;
+//         const Graph& original_graph;
+//     };

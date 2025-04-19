@@ -16,7 +16,7 @@ private:
     // Internal DFS function used for component coloring
     void dfs(int vertex, const std::vector<std::vector<int>>& adj, std::vector<int>& color, int current_color);
 
-    std::pair<int, std::vector<int>> max_flow(Graph blended_graph, int size, bool flag = true);
+    std::pair<int, std::vector<int>> max_flow(Graph blended_graph, int size);
 
 public:
     GomoryHuTree(const Graph& og_graph);
