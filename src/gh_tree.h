@@ -25,4 +25,4 @@ public:
 
 };
 
-#endif
+#endif // GH_TREE_H

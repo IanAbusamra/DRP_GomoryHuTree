@@ -19,4 +19,4 @@ struct Graph {
     }
 };
 
-#endif
+#endif // GRAPH_H

@@ -5,7 +5,7 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <function>
+#include <functional>
 #include "gh_tree.h"
 #include "graph.h"
 
@@ -66,7 +66,7 @@ GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
                 }
             }
 
-            //TODO: add +mega_blobs.size() in this map here
+            //add +mega_blobs.size() in this map here
             std::vector<int> local_vertices(blobs[i].begin(), blobs[i].end());
             std::map<int,int> index_map; //map to compress the blob's vertices
             for (int idx = 0; idx < (int)local_vertices.size(); ++idx) {
