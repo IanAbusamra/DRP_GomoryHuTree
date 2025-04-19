@@ -10,8 +10,8 @@ class GomoryHuTree {
 private:
     int n;
 
-    // Each node in the tree has a list of edges (from Gomory-Hu)
     std::vector<std::vector<int>> tree;
+    std::vector<Blob> blobs;
     
     // Internal DFS function used for component coloring
     void dfs(int vertex, const std::vector<std::vector<int>>& adj, std::vector<int>& color, int current_color);

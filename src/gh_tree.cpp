@@ -1,17 +1,18 @@
 #include <iostream>
 #include <queue>
 #include <limits>
+#include <climits>
 #include <vector>
 #include <set>
 #include <map>
+#include <function>
 #include "gh_tree.h"
 #include "graph.h"
 
 using Blob = std::set<int>;
 
 GomoryHuTree::GomoryHuTree(const Graph& og_graph) {
-    std::vector<Blob> blobs;
-
+    blobs.clear();
     Graph blob_tree(n);
 
     // Initialize the first blob with all vertices
@@ -133,23 +134,45 @@ void GomoryHuTree::dfs(int blob, const std::vector<std::vector<int>>& adj, std::
 }
 
 int GomoryHuTree::query(int u, int v, bool include_vertices) {
-    int ans = -1;
-
-    if (include_vertices) {
-        std::cout << "Include Vertices Flag Set." << std::endl;
-        std::cout << "Querying min-cut between " << u << " and " << v << std::endl;
+    //possibly preprocess this mapping
+    int idx_u = -1, idx_v = -1;
+    for (int i = 0; i < (int)blobs.size(); ++i) {
+        if (blobs[i].count(u)) idx_u = i;
+        if (blobs[i].count(v)) idx_v = i;
+        if (idx_u != -1 && idx_v != -1) break;
+    }
+    if (idx_u < 0 || idx_v < 0) {
+        std::cerr << "Error: one of the vertices is not in any blob.\n";
+        return -1;
     }
 
-    std::cout << "Minimum cut between " << u << " and " << v << ": " << ans << std::endl;
+    int min_edge = INT_MAX;
+    std::vector<bool> seen(blobs.size(), false);
+    std::function<bool(int)> dfs = [&](int cur) -> bool {
+        if (cur == idx_v) return true;
+        seen[cur] = true;
+        for (int nbr = 0; nbr < (int)blob_tree.adj[cur].size(); ++nbr) {
+            int w = blob_tree.adj[cur][nbr];
+            if (w < 0 || seen[nbr]) continue;
+            int prev_min = min_edge;
+            min_edge = std::min(min_edge, w);
+            if (dfs(nbr)) return true;
+            min_edge = prev_min;
+        }
+        return false;
+    };
+
+    dfs(idx_u);
+    if (min_edge == INT_MAX) {
+        std::cerr << "Error: no path between blobs " 
+                  << idx_u << " and " << idx_v << "\n";
+        return -1;
+    }
+
+    std::cout << "Min-cut between " << u << " and " << v << ": " << ans << std::endl;
     
     return ans;
 }
-
-// void initialize_blobs();
-// void split_blob(size_t i);
-// std::pair<Graph, std::map<int,int>> create_blended_graph(const Blob& blob);
-// void update_blob_tree(int old_blob_idx, int new_blob_idx, int flow_val);
-// Graph build_blended_graph(const Blob& current_blob, const std::vector<std::vector<int>>& mega_blobs);
 
 // class GomoryHuTree {
 //     public:
