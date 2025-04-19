@@ -6,3 +6,5 @@ To run (assuming g++ exists):
 
 1. Type ``g++ -o main gomory_hu.h main.cpp`` into Terminal.
 2. Type ``./main`` into Terminal.
+
+Note: Requires C++-17 or later due to structured bindings.
